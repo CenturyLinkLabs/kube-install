@@ -1,12 +1,4 @@
 #!/bin/bash
-set -x
-
-#centos 6 did not work
-#bbox: fed20,
-#clc: rhel7
-
-##Read stdin##
-
 
 for i in "$@"
 do
@@ -65,8 +57,8 @@ $minion_kuber_inv" > inventory
 
 cat inventory
 
-#Had to put private ips in inventory file
-#edit group_vars/all.yml add ansible_ssh_user: root (for bbbox: fedora)
+#Private IPs
+#If root user id is not root, update in this file
 if [[ "$host" == "brightbox" ]]; then
     sed -i "s#ansible_ssh_user.*#ansible_ssh_user: fedora#g" group_vars/all.yml
 fi
