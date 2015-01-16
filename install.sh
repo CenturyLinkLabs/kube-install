@@ -2,10 +2,11 @@
 
 for i in "$@"
 do
+echo $i
 case `echo $i | tr '[:upper:]' '[:lower:]'` in
-    -master_ip)
-    MASTER_IP="${i#*=}";;
-    -minions)
+    -master_ip=*)
+    master_ip="${i#*=}";;
+    -minions=*)
     MINION_IPS="${i#*=}";;
 esac
 done
@@ -13,7 +14,6 @@ done
 ROOT_USER="root"  #for brightbox, its fedora for fedora systems
 
 #setup ssh logins from master to minions
-master_ip=$MASTER_IP
 IFS=","
 minion_ips=( $MINION_IPS )
 
@@ -45,6 +45,8 @@ for ip in "${minion_ips[@]}"
 do
     minion_kuber_inv="$ip   kube_ip_addr=10.0.1.1\n$minion_kuber_inv"
 done
+
+echo $minion_kuber_inv
 
 echo -e "[masters]
 $master_ip

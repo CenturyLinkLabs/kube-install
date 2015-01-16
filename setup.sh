@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 
 for line in `cat`; do
    eval $line
