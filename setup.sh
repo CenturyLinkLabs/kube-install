@@ -15,6 +15,6 @@ echo -e "$pkey" > id_rsa
 chmod 400 id_rsa
 
 scp -o StrictHostKeyChecking=no  -i id_rsa install.sh root@$MASTER_PUBLIC_IP:~/
-ssh -o StrictHostKeyChecking=no  -i id_rsa root@$MASTER_PUBLIC_IP  "cd ~/ && chmod +x install.sh && ./install.sh -master_ip=$MASTER_PRIVATE_IP -minions=$MINION_IPS"
+ssh -o StrictHostKeyChecking=no  -t -t -i id_rsa root@$MASTER_PUBLIC_IP  "cd ~/ && chmod +x install.sh && ./install.sh -master_ip=$MASTER_PRIVATE_IP -minions=$MINION_IPS"
 
 

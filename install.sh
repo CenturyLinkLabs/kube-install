@@ -43,10 +43,13 @@ echo "---
 minion_kuber_inv=""
 for ip in "${minion_ips[@]}"
 do
+    ssh -o StrictHostKeyChecking=no  -t -t -i id_rsa root@$ip  "echo hello"
     minion_kuber_inv="$ip   kube_ip_addr=10.0.1.1\n$minion_kuber_inv"
 done
 
 echo $minion_kuber_inv
+
+ssh -o StrictHostKeyChecking=no  -t -t -i id_rsa root@$master_ip  "echo hello"
 
 echo -e "[masters]
 $master_ip
@@ -65,11 +68,10 @@ if [[ "$host" == "brightbox" ]]; then
     sed -i "s#ansible_ssh_user.*#ansible_ssh_user: fedora#g" group_vars/all.yml
 fi
 
-ansible-playbook -i inventory ping.yml
+#ansible-playbook -i inventory ping.yml
 ansible-playbook -i inventory setup.yml
 
 systemctl | grep -i kube
-
 
 echo -e "\n----BEGIN PANAMAX DATA----"
 echo -e "\nAGENT_KUBER_API=http://$master_ip:8080"
