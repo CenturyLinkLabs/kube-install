@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -x
+set -e
+
 for i in "$@"
 do
 echo $i
