@@ -15,8 +15,6 @@ echo -e "\n----BEGIN PANAMAX DATA----"
 echo -e "\nAGENT_KUBER_API=http://$MASTER_PRIVATE_IP:8080"
 echo -e "\n----END PANAMAX DATA----"
 
-exit 0;
-
 
 pkey=`echo -e $MASTER_PRIVATE_KEY | base64 --decode`
 echo -e "$pkey" > id_rsa
