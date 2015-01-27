@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 set -e
 
 for i in "$@"
@@ -75,7 +74,3 @@ fi
 ansible-playbook -i inventory setup.yml
 
 systemctl | grep -i kube
-
-echo -e "\n----BEGIN PANAMAX DATA----"
-echo -e "\nAGENT_KUBER_API=http://$master_ip:8080"
-echo -e "\n----END PANAMAX DATA----"
