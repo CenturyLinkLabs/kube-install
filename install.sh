@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "Logged into master, setting up kubernetes on master and minions"
+echo -e "Logged into Master node. Installing kubernetes on Master and Minions."
 
 function runCmd {
     eval "$@" >/dev/null &
