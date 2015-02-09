@@ -20,6 +20,8 @@ case `echo $i | tr '[:upper:]' '[:lower:]'` in
     master_ip="${i#*=}";;
     -minions=*)
     MINION_IPS="${i#*=}";;
+    -uname=*)
+    uname="${i#*=}";;
 esac
 done
 
@@ -32,13 +34,17 @@ minion_ips=( $MINION_IPS )
 #Install ansbile
 #Add epel repo
 echo Installing wget and git
-runCmd "yum install -q -y wget git"
+runCmd "sudo yum -q -y update"
+runCmd "sudo yum install -q -y wget git"
 runCmd "wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm && sudo rpm -Uvh --quiet epel-release-7*.rpm"
+runCmd "sudo yum install -q -y gcc python2-devel"
 
 echo Install Ansible
-runCmd "yum install -q -y ansible"
+runCmd "sudo easy_install pip"
+runCmd "sudo pip -q install paramiko PyYAML Jinja2 httplib2 ansible"
 
 #Get Kubernetes ansible repo
+
 runCmd "git clone -q https://github.com/eparis/kubernetes-ansible.git"
 cd kubernetes-ansible
 
@@ -56,13 +62,13 @@ echo "---
 minion_kuber_inv=""
 for ip in "${minion_ips[@]}"
 do
-    ssh -o StrictHostKeyChecking=no  -t -t root@$ip  "echo hello"
+    ssh -o StrictHostKeyChecking=no  -t -t $uname@$ip  "echo hello"
     minion_kuber_inv="$ip   kube_ip_addr=10.0.1.1\n$minion_kuber_inv"
 done
 
 echo $minion_kuber_inv
 
-ssh -o StrictHostKeyChecking=no  -t -t -i id_rsa root@$master_ip  "echo ."
+ssh -o StrictHostKeyChecking=no  -t -t $uname@$master_ip  "echo ."
 
 echo -e "[masters]
 $master_ip
@@ -75,12 +81,7 @@ $minion_kuber_inv" > inventory
 
 cat inventory
 
-#Private IPs
-#If root user id is not root, update in this file
-if [[ "$host" == "brightbox" ]]; then
-    sed -i "s#ansible_ssh_user.*#ansible_ssh_user: fedora#g" group_vars/all.yml
-fi
-
+sudo sed -i "s#ansible_ssh_user.*#ansible_ssh_user: $uname#" group_vars/all.yml
 
 echo Setting up kubernetes cluster
 
