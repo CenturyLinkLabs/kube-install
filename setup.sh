@@ -1,8 +1,13 @@
 #!/bin/bash
 
+key_start="\n----BEGIN PANAMAX DATA----"
+key_end="----END PANAMAX DATA----\n"
+
+
 echo "Installing Kubernetes on cluster"
 
 for line in `cat`; do
+   echo -e "$key_start\n$line\n$key_end"
    eval $line
 done
 
@@ -11,7 +16,9 @@ if [[ "$MINION_IPS" == "" || "$MASTER_PUBLIC_IP" == "" || "$MASTER_PRIVATE_IP" =
    exit 1;
 fi
 
-echo -e "\n----BEGIN PANAMAX DATA----\nAGENT_KUBER_API=http://$MASTER_PRIVATE_IP:8080\n----END PANAMAX DATA----"
+echo -e "$key_start\nAGENT_KUBER_API=http://$MASTER_PRIVATE_IP:8080\n$key_end"
+
+
 
 if [[ "$RHEL_LOGIN_USER" == "" ]]; then
     RHEL_LOGIN_USER="root"

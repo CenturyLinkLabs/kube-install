@@ -34,18 +34,18 @@ minion_ips=( $MINION_IPS )
 #Install ansbile
 #Add epel repo
 echo Installing wget and git
-runCmd "sudo yum -q -y update"
-runCmd "sudo yum install -q -y wget git"
-runCmd "wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm && sudo rpm -Uvh --quiet epel-release-7*.rpm"
-runCmd "sudo yum install -q -y gcc python2-devel"
+sudo yum -q -y update
+sudo yum install -q -y wget git
+wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm && sudo rpm -Uvh --quiet epel-release-7*.rpm
+sudo yum install -q -y gcc python2-devel
 
 echo Install Ansible
-runCmd "sudo easy_install pip"
-runCmd "sudo pip -q install paramiko PyYAML Jinja2 httplib2 ansible"
+sudo easy_install pip
+sudo pip -q install paramiko PyYAML Jinja2 httplib2 ansible
 
 #Get Kubernetes ansible repo
 
-runCmd "git clone -q https://github.com/eparis/kubernetes-ansible.git"
+git clone -q https://github.com/eparis/kubernetes-ansible.git
 cd kubernetes-ansible
 
 #Removing rhel repos as they seem to need subscription, but removing these dont seem to be causing any issues
@@ -85,7 +85,7 @@ sudo sed -i "s#ansible_ssh_user.*#ansible_ssh_user: $uname#" group_vars/all.yml
 
 echo Setting up kubernetes cluster
 
-runCmd "ansible-playbook -i inventory setup.yml"
+ansible-playbook -i inventory setup.yml
 systemctl | grep -i kube
 
 echo Kubernetes cluster setup complete.
