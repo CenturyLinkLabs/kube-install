@@ -34,7 +34,7 @@ minion_ips=( $MINION_IPS )
 #Install ansbile
 #Add epel repo
 echo Installing wget and git
-sudo yum -y update
+#sudo yum -y update
 sudo yum install -y wget git
 wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
 sudo rpm -Uvh --quiet epel-release-7*.rpm
