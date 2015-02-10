@@ -63,13 +63,19 @@ echo "---
 minion_kuber_inv=""
 for ip in "${minion_ips[@]}"
 do
-    ssh -o StrictHostKeyChecking=no  -t -t $uname@$ip  "echo hello"
+    ssh -o StrictHostKeyChecking=no  -t -t $uname@$ip "sudo yum -y remove docker && \
+     sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
+     sudo yum -y install docker && \
+     sudo systemctl start docker"
     minion_kuber_inv="$ip   kube_ip_addr=10.0.1.1\n$minion_kuber_inv"
 done
 
 echo $minion_kuber_inv
 
-ssh -o StrictHostKeyChecking=no  -t -t $uname@$master_ip  "echo ."
+ssh -o StrictHostKeyChecking=no  -t -t $uname@$master_ip  "sudo yum -y remove docker && \
+     sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
+     sudo yum -y install docker && \
+     sudo systemctl start docker"
 
 echo -e "[masters]
 $master_ip
