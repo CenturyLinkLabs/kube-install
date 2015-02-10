@@ -37,4 +37,3 @@ echo "Remote kubernetes cluster deployment complete."
 
 exit 0
 
-
