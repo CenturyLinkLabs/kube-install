@@ -12,6 +12,13 @@ function runCmd {
     done
 }
 
+function login_install_docker {
+ ssh -o StrictHostKeyChecking=no  -t -t $1@$2 "sudo yum -y remove docker && \
+     sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
+     sudo yum -y install docker && \
+     sudo systemctl start docker"
+}
+
 for i in "$@"
 do
 echo $i
@@ -24,8 +31,6 @@ case `echo $i | tr '[:upper:]' '[:lower:]'` in
     uname="${i#*=}";;
 esac
 done
-
-ROOT_USER="root"  #for brightbox, its fedora for fedora systems
 
 #setup ssh logins from master to minions
 IFS=","
@@ -63,19 +68,13 @@ echo "---
 minion_kuber_inv=""
 for ip in "${minion_ips[@]}"
 do
-    ssh -o StrictHostKeyChecking=no  -t -t $uname@$ip "sudo yum -y remove docker && \
-     sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
-     sudo yum -y install docker && \
-     sudo systemctl start docker"
+    login_install_docker $uname $ip
     minion_kuber_inv="$ip   kube_ip_addr=10.0.1.1\n$minion_kuber_inv"
 done
 
 echo $minion_kuber_inv
 
-ssh -o StrictHostKeyChecking=no  -t -t $uname@$master_ip  "sudo yum -y remove docker && \
-     sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
-     sudo yum -y install docker && \
-     sudo systemctl start docker"
+login_install_docker $uname $master_ip
 
 echo -e "[masters]
 $master_ip
@@ -94,6 +93,8 @@ echo Setting up kubernetes cluster
 
 ansible-playbook -i inventory setup.yml
 systemctl | grep -i kube
+echo Minions
+/usr/bin/kubectl get minions
 
 echo Kubernetes cluster setup complete.
 
