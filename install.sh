@@ -12,6 +12,13 @@ function runCmd {
     done
 }
 
+function login_install_docker {
+ ssh -o StrictHostKeyChecking=no  -t -t $1@$2 "sudo yum -y remove docker && \
+     sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
+     sudo yum -y install docker && \
+     sudo systemctl start docker"
+}
+
 for i in "$@"
 do
 echo $i
@@ -20,10 +27,10 @@ case `echo $i | tr '[:upper:]' '[:lower:]'` in
     master_ip="${i#*=}";;
     -minions=*)
     MINION_IPS="${i#*=}";;
+    -uname=*)
+    uname="${i#*=}";;
 esac
 done
-
-ROOT_USER="root"  #for brightbox, its fedora for fedora systems
 
 #setup ssh logins from master to minions
 IFS=","
@@ -32,14 +39,19 @@ minion_ips=( $MINION_IPS )
 #Install ansbile
 #Add epel repo
 echo Installing wget and git
-runCmd "yum install -q -y wget git"
-runCmd "wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm && sudo rpm -Uvh --quiet epel-release-7*.rpm"
+#sudo yum -y update
+sudo yum install -y wget git
+wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+sudo rpm -Uvh --quiet epel-release-7*.rpm
+sudo yum install -q -y gcc python2-devel
 
 echo Install Ansible
-runCmd "yum install -q -y ansible"
+sudo easy_install pip
+sudo pip -q install paramiko PyYAML Jinja2 httplib2 ansible
 
 #Get Kubernetes ansible repo
-runCmd "git clone -q https://github.com/eparis/kubernetes-ansible.git"
+
+git clone -q https://github.com/eparis/kubernetes-ansible.git
 cd kubernetes-ansible
 
 #Removing rhel repos as they seem to need subscription, but removing these dont seem to be causing any issues
@@ -56,13 +68,13 @@ echo "---
 minion_kuber_inv=""
 for ip in "${minion_ips[@]}"
 do
-    ssh -o StrictHostKeyChecking=no  -t -t root@$ip  "echo hello"
+    login_install_docker $uname $ip
     minion_kuber_inv="$ip   kube_ip_addr=10.0.1.1\n$minion_kuber_inv"
 done
 
 echo $minion_kuber_inv
 
-ssh -o StrictHostKeyChecking=no  -t -t -i id_rsa root@$master_ip  "echo ."
+login_install_docker $uname $master_ip
 
 echo -e "[masters]
 $master_ip
@@ -75,17 +87,14 @@ $minion_kuber_inv" > inventory
 
 cat inventory
 
-#Private IPs
-#If root user id is not root, update in this file
-if [[ "$host" == "brightbox" ]]; then
-    sed -i "s#ansible_ssh_user.*#ansible_ssh_user: fedora#g" group_vars/all.yml
-fi
-
+sudo sed -i "s#ansible_ssh_user.*#ansible_ssh_user: $uname#" group_vars/all.yml
 
 echo Setting up kubernetes cluster
 
-runCmd "ansible-playbook -i inventory setup.yml"
+ansible-playbook -i inventory setup.yml
 systemctl | grep -i kube
+echo Minions
+/usr/bin/kubectl get minions
 
 echo Kubernetes cluster setup complete.
 
