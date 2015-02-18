@@ -15,11 +15,12 @@ function runCmd {
 function login_install_docker {
  ssh -o StrictHostKeyChecking=no  -t -t $1@$2 " \
  sudo yum -y install firewalld && \
- wget http://cbs.centos.org/kojifiles/packages/docker/1.5.0/1.el7/x86_64/docker-1.5.0-1.el7.x86_64.rpm && \
- wget http://cbs.centos.org/kojifiles/packages/kubernetes/0.9.1/0.6.git7f5ed54.el7/x86_64/kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
- sudo rpm -ivh docker-1.5.0-1.el7.x86_64.rpm && \
- sudo rpm -ivh kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
+ sudo yum -y remove docker && \
+ sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
+ sudo yum -y install docker && \
  sudo systemctl start docker
+ wget http://cbs.centos.org/kojifiles/packages/kubernetes/0.9.1/0.6.git7f5ed54.el7/x86_64/kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
+ sudo rpm -ivh kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
  "
 
  if [[ "$3" == "masters" ]]; then
@@ -108,8 +109,11 @@ echo Setting up kubernetes cluster
 
 ansible-playbook -i inventory setup.yml
 systemctl | grep -i kube
+
 echo Minions
 /usr/bin/kubectl get minions
+sudo docker ps
+sudo systemctl status -l docker.service
 
 echo Kubernetes cluster setup complete.
 
