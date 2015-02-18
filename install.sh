@@ -13,10 +13,13 @@ function runCmd {
 }
 
 function login_install_docker {
- ssh -o StrictHostKeyChecking=no  -t -t $1@$2 "sudo yum -y remove docker && \
-     sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
-     sudo yum -y install docker && \
-     sudo systemctl start docker"
+ ssh -o StrictHostKeyChecking=no  -t -t $1@$2 " && \
+ wget http://cbs.centos.org/kojifiles/packages/docker/1.5.0/1.el7/x86_64/docker-1.5.0-1.el7.x86_64.rpm && \
+ wget http://cbs.centos.org/kojifiles/packages/kubernetes/0.9.1/0.6.git7f5ed54.el7/x86_64/kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
+ wget http://cbs.centos.org/kojifiles/packages/etcd/2.0.1/0.1.el7/x86_64/etcd-2.0.1-0.1.el7.x86_64.rpm && \
+ sudo rpm -ivh etcd-2.0.1-0.1.el7.x86_64.rpm && \
+ sudo rpm -ivh docker-1.5.0-1.el7.x86_64.rpm && \
+ sudo rpm -ivh kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm"
 }
 
 for i in "$@"
@@ -41,9 +44,10 @@ minion_ips=( $MINION_IPS )
 echo Installing wget and git
 #sudo yum -y update
 sudo yum install -y wget git
-wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
-sudo rpm -Uvh --quiet epel-release-7*.rpm
+#wget -q http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+#sudo rpm -Uvh --quiet epel-release-7*.rpm
 sudo yum install -q -y gcc python2-devel
+
 
 echo Install Ansible
 sudo easy_install pip
