@@ -13,16 +13,24 @@ function runCmd {
 }
 
 function login_install_docker {
- ssh -o StrictHostKeyChecking=no  -t -t $1@$2 " && \
+ ssh -o StrictHostKeyChecking=no  -t -t $1@$2 " \
+ sudo yum -y install firewalld && \
  wget http://cbs.centos.org/kojifiles/packages/docker/1.5.0/1.el7/x86_64/docker-1.5.0-1.el7.x86_64.rpm && \
  wget http://cbs.centos.org/kojifiles/packages/kubernetes/0.9.1/0.6.git7f5ed54.el7/x86_64/kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
- wget http://cbs.centos.org/kojifiles/packages/etcd/2.0.1/0.1.el7/x86_64/etcd-2.0.1-0.1.el7.x86_64.rpm && \
- sudo rpm -ivh etcd-2.0.1-0.1.el7.x86_64.rpm && \
  sudo rpm -ivh docker-1.5.0-1.el7.x86_64.rpm && \
  sudo rpm -ivh kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
- sudo systemctl start etcd && \
  sudo systemctl start docker
  "
+
+ if [[ "$3" == "masters" ]]; then
+    ssh -o StrictHostKeyChecking=no  -t -t $1@$2 " \
+     sudo yum -y install firewalld && \
+     wget http://cbs.centos.org/kojifiles/packages/etcd/2.0.1/0.1.el7/x86_64/etcd-2.0.1-0.1.el7.x86_64.rpm
+     sudo rpm -ivh etcd-2.0.1-0.1.el7.x86_64.rpm && \
+     sudo systemctl start etcd
+     "
+ fi
+
 }
 
 for i in "$@"
@@ -75,13 +83,13 @@ echo "---
 minion_kuber_inv=""
 for ip in "${minion_ips[@]}"
 do
-    login_install_docker $uname $ip
+    login_install_docker $uname $ip "minion"
     minion_kuber_inv="$ip   kube_ip_addr=10.0.1.1\n$minion_kuber_inv"
 done
 
 echo $minion_kuber_inv
 
-login_install_docker $uname $master_ip
+login_install_docker $uname $master_ip "master"
 
 echo -e "[masters]
 $master_ip
@@ -106,3 +114,7 @@ echo Minions
 echo Kubernetes cluster setup complete.
 
 exit 0;
+
+
+52.10.136.207
+52.10.136.78
