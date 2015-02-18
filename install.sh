@@ -16,6 +16,7 @@ function login_install_docker {
  ssh -o StrictHostKeyChecking=no  -t -t $1@$2 " \
  sudo yum -y install firewalld && \
  sudo yum -y remove docker && \
+ sudo yum -y remove kubernetes && \
  sudo yum-config-manager --enable rhui-REGION-rhel-server-extras && \
  sudo yum -y install docker && \
  sudo systemctl start docker
