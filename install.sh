@@ -119,6 +119,3 @@ echo Kubernetes cluster setup complete.
 
 exit 0;
 
-
-52.10.136.207
-52.10.136.78
