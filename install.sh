@@ -19,7 +19,10 @@ function login_install_docker {
  wget http://cbs.centos.org/kojifiles/packages/etcd/2.0.1/0.1.el7/x86_64/etcd-2.0.1-0.1.el7.x86_64.rpm && \
  sudo rpm -ivh etcd-2.0.1-0.1.el7.x86_64.rpm && \
  sudo rpm -ivh docker-1.5.0-1.el7.x86_64.rpm && \
- sudo rpm -ivh kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm"
+ sudo rpm -ivh kubernetes-0.9.1-0.6.git7f5ed54.el7.x86_64.rpm && \
+ sudo systemctl start etcd && \
+ sudo systemctl start docker
+ "
 }
 
 for i in "$@"
