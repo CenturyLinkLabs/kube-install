@@ -1,37 +1,44 @@
 #!/bin/bash
 
 set -x
-set -e
 
 for i in "$@"
 do
 echo $i
 case `echo $i | tr '[:upper:]' '[:lower:]'` in
     -master-ip=*)
-    master_ip="${i#*=}";;
+    ma_ip="${i#*=}";;
     -minion-ip=*)
-    minion_ip="${i#*=}";;
+    mi_ip="${i#*=}";;
     -uname=*)
-    uname="${i#*=}";;
+    un="${i#*=}";;
+    -minion-name=*)
+    mi_nm="${i#*=}";;
 esac
 done
 
-echo "[virt7-testing]
-name=CentOS CBS - Virt7 Testing
-baseurl=http://cbs.centos.org/repos/virt7-testing/x86_64/os/
-gpgcheck=0" > virt7-testing.repo && sudo mv virt7-testing.repo /etc/yum.repos.d/
+chmod +x install_components.sh
+sudo ./install_components.sh
 
-yum -y install --enablerepo=virt7-testing kubernetes
-yum -y install firewalld wget kubernetes
+/sbin/iptables -I INPUT 1 -p tcp --dport 10250 -j ACCEPT -m comment --comment "kubelet"
+systemctl enable iptables-services
+systemctl restart iptables-services
 
-echo -e "\n$master_ip master\n$minion_ip  minion1" >> /etc/hosts
+echo -e "\n$ma_ip master\n$mi_ip $mi_nm" >> /etc/hosts
 
-sed -i "s#KUBE_ETCD_SERVERS.*#KUBE_ETCD_SERVERS=\"--etcd_servers=http://master:4001\"#" /etc/kubernetes/config
+sudo systemctl stop docker
+sudo ip link delete docker0 #so that flannel is used.
 
+sudo ./flannel.sh $mi_ip
+
+sed -i s#KUBELET_HOSTNAME.*#KUBELET_HOSTNAME=\"--hostname_override=$mi_nm\"# kubelet
+cp kubernetes-config /etc/kubernetes/config
 cp kubelet /etc/kubernetes/kubelet
 
-for SERVICES in docker kube-proxy kubelet; do
+for SERVICES in flanneld docker kube-proxy kubelet; do
     systemctl restart $SERVICES
-    systemctl enable $SERVICES
-    systemctl status $SERVICES
+    systemctl enable  $SERVICES
+    systemctl status  $SERVICES
 done
+
+service iptables save

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 
 function log_key {
     if [[ "$#" == "2" ]]; then
@@ -34,8 +35,10 @@ chmod 400 id_rsa
 
 echo "Installing kubernetes over ssh"
 scp -o StrictHostKeyChecking=no  -i id_rsa -r * $RHEL_LOGIN_USER@$MASTER_PUBLIC_IP:~/
-scp -o StrictHostKeyChecking=no  -i id_rsa -r kubernetes-ansible $RHEL_LOGIN_USER@$MASTER_PUBLIC_IP:~/
-ssh -o StrictHostKeyChecking=no  -t -t -i id_rsa $RHEL_LOGIN_USER@$MASTER_PUBLIC_IP  "chmod +x install.sh && ./install.sh -master_ip=$MASTER_PRIVATE_IP -minions=$MINION_IPS -uname=$RHEL_LOGIN_USER"
+ssh -o StrictHostKeyChecking=no  -t -t -i id_rsa $RHEL_LOGIN_USER@$MASTER_PUBLIC_IP  "sudo ./master.sh -master-ip=$MASTER_PRIVATE_IP -minions=$MINION_IPS -uname=$RHEL_LOGIN_USER"
 
 echo "Remote kubernetes cluster deployment complete."
+
+ssh -o StrictHostKeyChecking=no -i id_rsa  -t -t $RHEL_LOGIN_USER@$MASTER_PUBLIC_IP "sudo kubectl get minions"
+
 exit 0

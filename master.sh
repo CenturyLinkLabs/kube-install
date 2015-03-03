@@ -1,42 +1,69 @@
 #!/bin/bash
 
 set -x
-set -e
 
 for i in "$@"
 do
 echo $i
 case `echo $i | tr '[:upper:]' '[:lower:]'` in
     -master-ip=*)
-    master_ip="${i#*=}";;
+    ma_ip="${i#*=}";;
     -minion-ip=*)
-    minion_ip="${i#*=}";;
+    mi_ip="${i#*=}";;
+    -minions=*)
+    mis="${i#*=}";;
     -uname=*)
-    uname="${i#*=}";;
+    un="${i#*=}";;
 esac
 done
 
-echo "[virt7-testing]
-name=CentOS CBS - Virt7 Testing
-baseurl=http://cbs.centos.org/repos/virt7-testing/x86_64/os/
-gpgcheck=0" > virt7-testing.repo && sudo mv virt7-testing.repo /etc/yum.repos.d/
+chmod +x ./install_components.sh
+sudo ./install_components.sh
 
-yum -y install --enablerepo=virt7-testing kubernetes
-yum -y install firewalld wget kubernetes
+echo -e "\n$ma_ip master" >> /etc/hosts
 
-echo -e "\n$master_ip master\n$minion_ip  minion1" >> /etc/hosts
+IFS=","
+mi_ips=( $mis )
+i=1
+mi_nms=""
 
-sed -i "s#KUBE_ETCD_SERVERS.*#KUBE_ETCD_SERVERS=\"--etcd_servers=http://master:4001\"#" /etc/kubernetes/config
+for ip in "${mi_ips[@]}"
+do
+    nm="minion$i"
+    echo -e "\n$ip $nm" >> /etc/hosts
+    if [[ "$mi_nms" == "" ]]; then
+        mi_nms=$nm
+    else
+        mi_nms="$mi_nms,$nm"
+    fi
+    (( i++ ))
+done
 
+echo "KUBELET_ADDRESSES=\"--machines=$mi_nms\"" > controller-manager
+cp etcd-kube.service /usr/lib/systemd/system/
+sudo systemctl restart etcd-kube
+
+curl -s -L http://master:4001/v2/keys/coreos.com/network/config -XPUT -d value='{"Network": "10.254.0.0/16", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
+sudo ./flannel.sh $ma_ip
+
+cp kubernetes-config /etc/kubernetes/config
 cp apiserver  /etc/kubernetes/apiserver
-cp controller-manager  /etc/kubernetes/controller-manager
+cp controller-manager /etc/kubernetes/controller-manager
 
-sudo etcd --listen-client-urls 'http://0.0.0.0:4001' &
-
-for SERVICES in docker kube-apiserver kube-controller-manager kube-scheduler; do
+for SERVICES in kube-apiserver kube-controller-manager kube-scheduler; do
     systemctl restart $SERVICES
     systemctl enable $SERVICES
     systemctl status $SERVICES
 done
 
-kubectl get minions
+i=1
+for ip in "${mi_ips[@]}"
+do
+    nm="minion$i"
+    scp -o StrictHostKeyChecking=no -i id_rsa -r * $un@$ip:~/
+    ssh -o StrictHostKeyChecking=no -i id_rsa -t -t $un@$ip "sudo ./minion.sh -master-ip=$ma_ip -minion-ip=$ip -uname=$un -minion-name=$nm"
+    (( i++ ))
+done
+
+
+exit 0;
