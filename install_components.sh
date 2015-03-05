@@ -12,4 +12,5 @@ yum -y install http://cbs.centos.org/kojifiles/packages/etcd/0.4.6/7.el7.centos/
 
 yum -y install --enablerepo=virt7-testing  wget kubernetes iptables-services
 systemctl disable iptables-services firewalld
+systemctl stop iptables-services firewalld
 
