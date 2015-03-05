@@ -1,0 +1,14 @@
+[Unit]
+Description=Etcd Server
+After=network.target
+
+[Service]
+Type=simple
+StandardOutput=null
+WorkingDirectory=/var/lib/etcd/
+User=root
+ExecStartPre=mkdir /var/lib/etcd/
+ExecStart=/usr/bin/bash -c '/usr/bin/etcd -bind-addr=\"0.0.0.0:4001\"'
+
+[Install]
+WantedBy=multi-user.target

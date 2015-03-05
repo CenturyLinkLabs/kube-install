@@ -1,0 +1,2 @@
+# Comma separated list of minions
+KUBELET_ADDRESSES="--machines=minion1"
