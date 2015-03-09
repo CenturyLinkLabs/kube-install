@@ -43,7 +43,7 @@ echo "KUBELET_ADDRESSES=\"--machines=$mi_nms\"" > controller-manager
 cp etcd-kube.service /usr/lib/systemd/system/
 sudo systemctl restart etcd-kube
 
-curl -s -L http://master:4001/v2/keys/coreos.com/network/config -XPUT -d value='{"Network": "10.254.0.0/16", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
+curl -s -L http://master:4001/v2/keys/coreos.com/network/config -XPUT -d value='{"Network": "10.254.0.0/16", "SubnetLen": 24, "Backend": {"Type": "udp"}}'
 sudo ./flannel.sh $ma_ip
 
 cp kubernetes-config /etc/kubernetes/config
