@@ -9,9 +9,9 @@ gpgcheck=0" > virt7-testing.repo && sudo mv virt7-testing.repo /etc/yum.repos.d/
 
 yum -y update  --skip-broken
 yum -y erase etcd
-yum -y install wget iptables-services
-yum -y install http://cbs.centos.org/kojifiles/packages/etcd/0.4.6/7.el7.centos/x86_64/etcd-0.4.6-7.el7.centos.x86_64.rpm
-yum -y install http://cbs.centos.org/kojifiles/packages/kubernetes/0.15.0/0.1.gitd02139d.el7/x86_64/kubernetes-0.15.0-0.1.gitd02139d.el7.x86_64.rpm
+yum -y install wget iptables-services etcd
+#yum -y install http://cbs.centos.org/kojifiles/packages/etcd/2.0.9/1.el7/x86_64/etcd-2.0.9-1.el7.x86_64.rpm
+yum -y install http://cbs.centos.org/kojifiles/packages/kubernetes/0.16.2/2.el7/x86_64/kubernetes-0.16.2-2.el7.x86_64.rpm
 
 systemctl disable iptables-services firewalld
 systemctl stop iptables-services firewalld
